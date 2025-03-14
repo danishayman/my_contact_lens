@@ -25,7 +25,7 @@ class Lens {
   }
 
   String get formattedExpiryDate {
-    return DateFormat('d MMM yy').format(expiryDate);
+    return DateFormat('M/d/yy').format(expiryDate);
   }
 }
 
@@ -40,7 +40,6 @@ class _HomePageState extends State<HomePage> {
   Lens? leftLens;
   Lens? rightLens;
   int stocksRemaining = 0;
-  bool showAddLensForm = false;
   String selectedEye = 'left'; // Track which eye is being edited
 
   // Random facts about contact lenses
@@ -95,9 +94,7 @@ class _HomePageState extends State<HomePage> {
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.grey),
                             onPressed: () {
-                              setState(() {
-                                showAddLensForm = true;
-                              });
+                              _showAddLensDialog();
                             },
                           ),
                           TextButton.icon(
@@ -183,29 +180,23 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
 
               // Add new lenses button
-              if (!showAddLensForm)
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      showAddLensForm = true;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'ADD NEW LENSES',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ElevatedButton(
+                onPressed: () {
+                  _showAddLensDialog();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
                   ),
                 ),
-
-              // Add lens form
-              if (showAddLensForm) _buildAddLensForm(),
+                child: const Text(
+                  'Add New Lens',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
         ),
@@ -251,7 +242,28 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildAddLensForm() {
+  // Method to show the add lens dialog
+  void _showAddLensDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _buildAddLensForm(context),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAddLensForm(BuildContext dialogContext) {
     final DateTime now = DateTime.now();
     DateTime leftOpenDate = leftLens?.openDate ?? now;
     DateTime rightOpenDate = rightLens?.openDate ?? now;
@@ -263,227 +275,229 @@ class _HomePageState extends State<HomePage> {
         selectedEye == 'left' ? leftOpenDate : rightOpenDate;
     String selectedType = selectedEye == 'left' ? leftType : rightType;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: StatefulBuilder(
-        builder: (context, setState) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildLensSelector('Left\nLens', selectedEye == 'left',
-                      (isSelected) {
-                    if (isSelected) {
-                      setState(() {
-                        selectedEye = 'left';
-                        selectedDate = leftOpenDate;
-                        selectedType = leftType;
-                      });
-                    }
-                  }),
-                  _buildLensSelector('Right\nLens', selectedEye == 'right',
-                      (isSelected) {
-                    if (isSelected) {
-                      setState(() {
-                        selectedEye = 'right';
-                        selectedDate = rightOpenDate;
-                        selectedType = rightType;
-                      });
-                    }
-                  }),
-                ],
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                'Add New Lens',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Open Date',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 10),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildLensSelector('Left\nLens', selectedEye == 'left',
+                    (isSelected) {
+                  if (isSelected) {
+                    setState(() {
+                      selectedEye = 'left';
+                      selectedDate = leftOpenDate;
+                      selectedType = leftType;
+                    });
+                  }
+                }),
+                _buildLensSelector('Right\nLens', selectedEye == 'right',
+                    (isSelected) {
+                  if (isSelected) {
+                    setState(() {
+                      selectedEye = 'right';
+                      selectedDate = rightOpenDate;
+                      selectedType = rightType;
+                    });
+                  }
+                }),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Open Date',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
 
-              // Month selection
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Month',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade400,
-                    ),
+            // Month selection
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Month',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade400,
                   ),
-                  const SizedBox(height: 5),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (int i = 0; i < 12; i++)
-                          _buildMonthButton(
-                            DateFormat('MMM').format(DateTime(2023, i + 1)),
-                            selectedDate.month == i + 1,
-                            () {
-                              setState(() {
-                                if (selectedEye == 'left') {
-                                  leftOpenDate = DateTime(
-                                    selectedDate.year,
-                                    i + 1,
-                                    selectedDate.day >
-                                            DateUtils.getDaysInMonth(
-                                                selectedDate.year, i + 1)
-                                        ? DateUtils.getDaysInMonth(
-                                            selectedDate.year, i + 1)
-                                        : selectedDate.day,
-                                  );
-                                  selectedDate = leftOpenDate;
-                                } else {
-                                  rightOpenDate = DateTime(
-                                    selectedDate.year,
-                                    i + 1,
-                                    selectedDate.day >
-                                            DateUtils.getDaysInMonth(
-                                                selectedDate.year, i + 1)
-                                        ? DateUtils.getDaysInMonth(
-                                            selectedDate.year, i + 1)
-                                        : selectedDate.day,
-                                  );
-                                  selectedDate = rightOpenDate;
-                                }
-                              });
-                            },
-                          ),
-                      ],
-                    ),
+                ),
+                const SizedBox(height: 5),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < 12; i++)
+                        _buildMonthButton(
+                          DateFormat('MMM').format(DateTime(2023, i + 1)),
+                          selectedDate.month == i + 1,
+                          () {
+                            setState(() {
+                              if (selectedEye == 'left') {
+                                leftOpenDate = DateTime(
+                                  selectedDate.year,
+                                  i + 1,
+                                  selectedDate.day >
+                                          DateUtils.getDaysInMonth(
+                                              selectedDate.year, i + 1)
+                                      ? DateUtils.getDaysInMonth(
+                                          selectedDate.year, i + 1)
+                                      : selectedDate.day,
+                                );
+                                selectedDate = leftOpenDate;
+                              } else {
+                                rightOpenDate = DateTime(
+                                  selectedDate.year,
+                                  i + 1,
+                                  selectedDate.day >
+                                          DateUtils.getDaysInMonth(
+                                              selectedDate.year, i + 1)
+                                      ? DateUtils.getDaysInMonth(
+                                          selectedDate.year, i + 1)
+                                      : selectedDate.day,
+                                );
+                                selectedDate = rightOpenDate;
+                              }
+                            });
+                          },
+                        ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
 
-              const SizedBox(height: 15),
+            const SizedBox(height: 15),
 
-              // Day selection
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Day',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade400,
-                    ),
+            // Day selection
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Day',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade400,
                   ),
-                  const SizedBox(height: 5),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (int day = 1;
-                            day <=
-                                DateUtils.getDaysInMonth(
-                                    selectedDate.year, selectedDate.month);
-                            day++)
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 4.0),
-                            child: CircleAvatar(
-                              radius: 18,
-                              backgroundColor: selectedDate.day == day
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    if (selectedEye == 'left') {
-                                      leftOpenDate = DateTime(
-                                        selectedDate.year,
-                                        selectedDate.month,
-                                        day,
-                                      );
-                                      selectedDate = leftOpenDate;
-                                    } else {
-                                      rightOpenDate = DateTime(
-                                        selectedDate.year,
-                                        selectedDate.month,
-                                        day,
-                                      );
-                                      selectedDate = rightOpenDate;
-                                    }
-                                  });
-                                },
-                                child: Text(
-                                  day.toString(),
-                                  style: TextStyle(
-                                    color: selectedDate.day == day
-                                        ? Colors.white
-                                        : Colors.grey,
-                                  ),
+                ),
+                const SizedBox(height: 5),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (int day = 1;
+                          day <=
+                              DateUtils.getDaysInMonth(
+                                  selectedDate.year, selectedDate.month);
+                          day++)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: CircleAvatar(
+                            radius: 18,
+                            backgroundColor: selectedDate.day == day
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (selectedEye == 'left') {
+                                    leftOpenDate = DateTime(
+                                      selectedDate.year,
+                                      selectedDate.month,
+                                      day,
+                                    );
+                                    selectedDate = leftOpenDate;
+                                  } else {
+                                    rightOpenDate = DateTime(
+                                      selectedDate.year,
+                                      selectedDate.month,
+                                      day,
+                                    );
+                                    selectedDate = rightOpenDate;
+                                  }
+                                });
+                              },
+                              child: Text(
+                                day.toString(),
+                                style: TextStyle(
+                                  color: selectedDate.day == day
+                                      ? Colors.white
+                                      : Colors.grey,
                                 ),
                               ),
                             ),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
 
-              const SizedBox(height: 20),
-              const Text(
-                'Type',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 10),
-              _buildTypeDropdown(
-                selectedEye == 'left' ? leftType : rightType,
-                (value) {
-                  setState(() {
-                    if (selectedEye == 'left') {
-                      leftType = value!;
-                    } else {
-                      rightType = value!;
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      this.setState(() {
-                        showAddLensForm = false;
-                      });
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 10),
-                  TextButton(
-                    onPressed: () {
-                      _saveLenses(
-                        leftOpenDate,
-                        rightOpenDate,
-                        leftType,
-                        rightType,
-                      );
-                    },
-                    child: Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+            const SizedBox(height: 20),
+            const Text(
+              'Type',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
+            _buildTypeDropdown(
+              selectedEye == 'left' ? leftType : rightType,
+              (value) {
+                setState(() {
+                  if (selectedEye == 'left') {
+                    leftType = value!;
+                  } else {
+                    rightType = value!;
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 10),
+                TextButton(
+                  onPressed: () {
+                    _saveLenses(
+                      leftOpenDate,
+                      rightOpenDate,
+                      leftType,
+                      rightType,
+                    );
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -494,7 +508,7 @@ class _HomePageState extends State<HomePage> {
   ) {
     return GestureDetector(
       onTap: () =>
-          onSelected(true), // Always pass true since we're selecting this eye
+          onSelected(true),
       child: Column(
         children: [
           Text(
@@ -573,10 +587,7 @@ class _HomePageState extends State<HomePage> {
           DropdownMenuItem(value: 'Weekly', child: Text('Weekly')),
           DropdownMenuItem(value: 'Bi-weekly', child: Text('Bi-weekly')),
           DropdownMenuItem(value: 'Monthly', child: Text('Monthly')),
-          DropdownMenuItem(value: 'Bimonthly', child: Text('Bimonthly')),
-          DropdownMenuItem(value: 'Quarterly', child: Text('Quarterly')),
-          DropdownMenuItem(value: 'Annual', child: Text('Annual')),
-
+          DropdownMenuItem(value: 'Bi-Monthly', child: Text('Bi-Monthly')),
         ],
       ),
     );
@@ -599,12 +610,8 @@ class _HomePageState extends State<HomePage> {
           return 14;
         case 'Monthly':
           return 30;
-        case 'Bimonthly':
+        case 'Bi-Monthly':
           return 60;
-        case 'Quarterly':
-          return 90;
-        case 'Annual':
-          return 365;
         default:
           return 30;
       }
@@ -624,8 +631,6 @@ class _HomePageState extends State<HomePage> {
         type: rightType,
         durationDays: getDuration(rightType),
       );
-
-      showAddLensForm = false;
     });
   }
 
