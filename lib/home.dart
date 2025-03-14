@@ -570,8 +570,13 @@ class _HomePageState extends State<HomePage> {
         onChanged: onChanged,
         items: const [
           DropdownMenuItem(value: 'Daily', child: Text('Daily')),
+          DropdownMenuItem(value: 'Weekly', child: Text('Weekly')),
           DropdownMenuItem(value: 'Bi-weekly', child: Text('Bi-weekly')),
           DropdownMenuItem(value: 'Monthly', child: Text('Monthly')),
+          DropdownMenuItem(value: 'Bimonthly', child: Text('Bimonthly')),
+          DropdownMenuItem(value: 'Quarterly', child: Text('Quarterly')),
+          DropdownMenuItem(value: 'Annual', child: Text('Annual')),
+
         ],
       ),
     );
@@ -588,10 +593,18 @@ class _HomePageState extends State<HomePage> {
       switch (type) {
         case 'Daily':
           return 1;
+        case 'Weekly':
+          return 7;
         case 'Bi-weekly':
           return 14;
         case 'Monthly':
           return 30;
+        case 'Bimonthly':
+          return 60;
+        case 'Quarterly':
+          return 90;
+        case 'Annual':
+          return 365;
         default:
           return 30;
       }
